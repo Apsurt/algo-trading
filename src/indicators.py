@@ -6,111 +6,77 @@ from ta.volatility import BollingerBands, AverageTrueRange
 from ta.volume import OnBalanceVolumeIndicator, VolumePriceTrendIndicator
 from enum import Enum
 from structs import Indicator
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict, Union
 
 class Indicators:
-    def __init__(self, data: pd.DataFrame) -> None:
-        self.data: pd.DataFrame = data
-        self.period = 20  # Default period
-        pass
+    def __init__(self, data: pd.DataFrame, period: int = 20,
+                 fast_period: int = 12, slow_period: int = 26, signal_period: int = 9,
+                 std_dev: float = 2.0, k_period: int = 14, d_period: int = 3, smooth_k: int = 3) -> None:
+        self.data = data
+        self.period = period
+        self.fast_period = fast_period
+        self.slow_period = slow_period
+        self.signal_period = signal_period
+        self.std_dev = std_dev
+        self.k_period = k_period
+        self.d_period = d_period
+        self.smooth_k = smooth_k
 
     def _get_price_column(self, column_name: str) -> pd.Series:
-        """Helper method to get price column regardless of ticker symbol"""
-        if self.data is not pd.Series or self.data.columns :
-            raise TypeError
-        return self.data[next(col for col in self.data.columns if col[0] == column_name)]
+        # Ensure we're returning a proper Series (1D) not a DataFrame
+        if column_name in self.data.columns:
+            return self.data[column_name].squeeze()
+        # In case we need to search for columns
+        possible_column = next((col for col in self.data.columns if col.endswith(column_name)), None)
+        if possible_column:
+            return self.data[possible_column].squeeze()
+        raise ValueError(f"Column {column_name} not found in data")
 
-    def SMA(self, period: Optional[int] = None) -> Tuple[Indicator, float]:
-        """
-        Calculate Simple Moving Average (SMA)
-        Returns:
-            Tuple[Indicator, float]: A tuple containing the indicator type and the calculated SMA value
-        """
-        if period is not None:
-            self.period = period
-
+    def SMA(self) -> float:
         close_prices = self._get_price_column('Close')
         sma_indicator = SMAIndicator(close=close_prices, window=self.period)
-        val = float(sma_indicator.sma_indicator().iloc[-1])
-        return (Indicator.SMA, val)
+        sma_values = sma_indicator.sma_indicator()
+        return float(sma_values.iloc[-1])
 
-    def EMA(self, period: Optional[int] = None) -> Tuple[Indicator, float]:
-        """
-        Calculate Exponential Moving Average (EMA)
-        Returns:
-            Tuple[Indicator, float]: A tuple containing the indicator type and the calculated EMA value
-        """
-        if period is not None:
-            self.period = period
-
+    def EMA(self) -> float:
         close_prices = self._get_price_column('Close')
         ema_indicator = EMAIndicator(close=close_prices, window=self.period)
-        val = float(ema_indicator.ema_indicator().iloc[-1])
-        return (Indicator.EMA, val)
+        ema_values = ema_indicator.ema_indicator()
+        return float(ema_values.iloc[-1])
 
-    def MACD(self, fast_period: int = 12, slow_period: int = 26, signal_period: int = 9) -> Tuple[Indicator, dict]:
-        """
-        Calculate Moving Average Convergence Divergence (MACD)
-        Returns:
-            Tuple[Indicator, dict]: A tuple containing the indicator type and a dictionary with MACD values
-        """
+    def MACD(self) -> Dict[str, float]:
+        # Returns dictionary of MACD values since it produces multiple values
         close_prices = self._get_price_column('Close')
         macd_indicator = MACD(
             close=close_prices,
-            window_slow=slow_period,
-            window_fast=fast_period,
-            window_sign=signal_period
+            window_slow=self.slow_period,
+            window_fast=self.fast_period,
+            window_sign=self.signal_period
         )
 
-        macd_values = {
+        return {
             'macd': float(macd_indicator.macd().iloc[-1]),
             'signal': float(macd_indicator.macd_signal().iloc[-1]),
             'histogram': float(macd_indicator.macd_diff().iloc[-1])
         }
-        return (Indicator.MACD, macd_values)
 
-    def RSI(self, period: Optional[int] = None) -> Tuple[Indicator, float]:
-        """
-        Calculate Relative Strength Index (RSI)
-        Returns:
-            Tuple[Indicator, float]: A tuple containing the indicator type and the calculated RSI value
-        """
-        if period is not None:
-            self.period = period
-
+    def RSI(self) -> float:
         close_prices = self._get_price_column('Close')
         rsi_indicator = RSIIndicator(close=close_prices, window=self.period)
-        val = float(rsi_indicator.rsi().iloc[-1])
-        return (Indicator.RSI, val)
+        return float(rsi_indicator.rsi().iloc[-1])
 
-    def BBANDS(self, period: Optional[int] = None, std_dev: float = 2.0) -> Tuple[Indicator, dict]:
-        """
-        Calculate Bollinger Bands
-        Returns:
-            Tuple[Indicator, dict]: A tuple containing the indicator type and a dictionary with Bollinger Bands values
-        """
-        if period is not None:
-            self.period = period
-
+    def BBANDS(self) -> Dict[str, float]:
+        # Returns dictionary of Bollinger Band values since it produces multiple values
         close_prices = self._get_price_column('Close')
-        bb_indicator = BollingerBands(close=close_prices, window=self.period, window_dev=std_dev)
+        bb_indicator = BollingerBands(close=close_prices, window=self.period, window_dev=self.std_dev)
 
-        bb_values = {
+        return {
             'upper': float(bb_indicator.bollinger_hband().iloc[-1]),
             'middle': float(bb_indicator.bollinger_mavg().iloc[-1]),
             'lower': float(bb_indicator.bollinger_lband().iloc[-1])
         }
-        return (Indicator.BBANDS, bb_values)
 
-    def ATR(self, period: Optional[int] = None) -> Tuple[Indicator, float]:
-        """
-        Calculate Average True Range (ATR)
-        Returns:
-            Tuple[Indicator, float]: A tuple containing the indicator type and the calculated ATR value
-        """
-        if period is not None:
-            self.period = period
-
+    def ATR(self) -> float:
         high_prices = self._get_price_column('High')
         low_prices = self._get_price_column('Low')
         close_prices = self._get_price_column('Close')
@@ -121,18 +87,10 @@ class Indicators:
             close=close_prices,
             window=self.period
         )
-        val = float(atr_indicator.average_true_range().iloc[-1])
-        return (Indicator.ATR, val)
+        return float(atr_indicator.average_true_range().iloc[-1])
 
-    def ADX(self, period: Optional[int] = None) -> Tuple[Indicator, dict]:
-        """
-        Calculate Average Directional Index (ADX)
-        Returns:
-            Tuple[Indicator, dict]: A tuple containing the indicator type and a dictionary with ADX values
-        """
-        if period is not None:
-            self.period = period
-
+    def ADX(self) -> Dict[str, float]:
+        # Returns dictionary of ADX values since it produces multiple values
         high_prices = self._get_price_column('High')
         low_prices = self._get_price_column('Low')
         close_prices = self._get_price_column('Close')
@@ -144,19 +102,14 @@ class Indicators:
             window=self.period
         )
 
-        adx_values = {
+        return {
             'adx': float(adx_indicator.adx().iloc[-1]),
             'pdi': float(adx_indicator.adx_pos().iloc[-1]),
             'ndi': float(adx_indicator.adx_neg().iloc[-1])
         }
-        return (Indicator.ADX, adx_values)
 
-    def STOCH(self, k_period: int = 14, d_period: int = 3, smooth_k: int = 3) -> Tuple[Indicator, dict]:
-        """
-        Calculate Stochastic Oscillator
-        Returns:
-            Tuple[Indicator, dict]: A tuple containing the indicator type and a dictionary with Stochastic values
-        """
+    def STOCH(self) -> Dict[str, float]:
+        # Returns dictionary of stochastic oscillator values since it produces multiple values
         high_prices = self._get_price_column('High')
         low_prices = self._get_price_column('Low')
         close_prices = self._get_price_column('Close')
@@ -165,38 +118,25 @@ class Indicators:
             high=high_prices,
             low=low_prices,
             close=close_prices,
-            window=k_period,
-            smooth_window=smooth_k
+            window=self.k_period,
+            smooth_window=self.smooth_k
         )
 
-        stoch_values = {
+        return {
             '%K': float(stoch_indicator.stoch().iloc[-1]),
             '%D': float(stoch_indicator.stoch_signal().iloc[-1])
         }
-        return (Indicator.STOCH, stoch_values)
 
-    def OBV(self) -> Tuple[Indicator, float]:
-        """
-        Calculate On Balance Volume (OBV)
-        Returns:
-            Tuple[Indicator, float]: A tuple containing the indicator type and the calculated OBV value
-        """
+    def OBV(self) -> float:
         close_prices = self._get_price_column('Close')
         volume = self._get_price_column('Volume')
 
         obv_indicator = OnBalanceVolumeIndicator(close=close_prices, volume=volume)
-        val = float(obv_indicator.on_balance_volume().iloc[-1])
-        return (Indicator.OBV, val)
+        return float(obv_indicator.on_balance_volume().iloc[-1])
 
-    def VPT(self) -> Tuple[Indicator, float]:
-        """
-        Calculate Volume Price Trend (VPT)
-        Returns:
-            Tuple[Indicator, float]: A tuple containing the indicator type and the calculated VPT value
-        """
+    def VPT(self) -> float:
         close_prices = self._get_price_column('Close')
         volume = self._get_price_column('Volume')
 
         vpt_indicator = VolumePriceTrendIndicator(close=close_prices, volume=volume)
-        val = float(vpt_indicator.volume_price_trend().iloc[-1])
-        return (Indicator.VPT, val)
+        return float(vpt_indicator.volume_price_trend().iloc[-1])
