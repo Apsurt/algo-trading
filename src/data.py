@@ -1,5 +1,4 @@
 import yfinance as yf
-import numpy as np
 import pandas as pd
 from typing import Dict, Optional
 
@@ -19,19 +18,19 @@ class DataHandler:
             start=self.start,
             end=self.end,
             interval=self.interval,
-            auto_adjust=False  # Explicitly set to maintain column names
+            auto_adjust=False
         )
         self._clean_data()
         return self.data
 
     def _clean_data(self):
         """Clean and preprocess data"""
+        if self.data is None:
+            raise ValueError("Data is None.")
         self.data.dropna(inplace=True)
         self.data['Returns'] = self.data['Close'].pct_change()
 
-# Example Usage
 if __name__ == "__main__":
-    # Data Retrieval
     data_handler = DataHandler('AAPL', '2020-01-01', '2023-01-01')
     data = data_handler.fetch_data()
     print(data)
