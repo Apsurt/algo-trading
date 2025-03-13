@@ -10,7 +10,8 @@ class IndicatorCombiner:
         self.weights = weights
 
     def __call__(self, *args: Tuple[Indicator, float]) -> Signal:
-        pass
+
+        return Signal.BUY
 
 if __name__ == "__main__":
     combiner = IndicatorCombiner()
