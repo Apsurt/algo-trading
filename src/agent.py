@@ -21,7 +21,8 @@ class Agent:
         self.running: bool = True
 
     def update_ticker(self, new_ticker: str) -> None:
-        pass
+        self.data_handler.update_ticker(new_ticker)
+        self.ticker = new_ticker
 
     def start(self):
         while True:
