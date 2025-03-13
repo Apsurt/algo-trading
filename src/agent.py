@@ -1,12 +1,12 @@
 from combiner import Combiner
 from data import DataHandler
-from datetime import date
+from datetime import date, timedelta
 
 class Agent:
-    def __init__(self, ticker: str, start_date: date, end_date: date) -> None:
+    def __init__(self, ticker: str,) -> None:
         self.ticker: str = ticker
-        self.start_date: date = start_date
-        self.end_date: date = end_date
+        self.end_date: date = date.today()
+        self.start_date: date = self.end_date - timedelta(1.0)
         self.interval: str = "1d"
 
         self.data_handler: DataHandler = DataHandler(
