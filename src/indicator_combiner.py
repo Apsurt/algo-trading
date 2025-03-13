@@ -18,4 +18,4 @@ if __name__ == "__main__":
     combiner = IndicatorCombiner()
     indicators = Indicators()
 
-    final_signal = combiner(*indicators.)
+    final_signal = combiner(*indicators.list_all_tuples())
