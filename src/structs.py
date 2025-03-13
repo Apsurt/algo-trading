@@ -6,5 +6,5 @@ class Signal(Enum):
 
 class Indicator(Enum):
     MA = 0
-    RSI = 0
+    RSI = 1
     # etc...
