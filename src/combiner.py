@@ -1,14 +1,17 @@
+import pandas as pd
+import numpy as np
 from indicator_combiner import IndicatorCombiner
-from structs import Signal
 
 class Combiner:
     def __init__(self) -> None:
         # Indicators
-        indicator_combiner = IndicatorCombiner()
+        self.indicator_combiner = IndicatorCombiner()
 
         # Chart Patterns
         # ML
         # ML Sentiment
 
-    def __call__(self) -> Signal:
-        return Signal.BUY
+    def __call__(self, data: pd.DataFrame) -> float:
+        return float(np.mean([
+            self.indicator_combiner(data),
+        ]))

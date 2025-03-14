@@ -7,7 +7,7 @@ class Agent:
         self.ticker: str = ticker
         self.end_date: date = date.today()
         self.start_date: date = self.end_date - timedelta(1.0)
-        self.interval: str = "1d"
+        self.interval: str = "1m"
 
         self.data_handler: DataHandler = DataHandler(
             ticker,
@@ -31,4 +31,6 @@ class Agent:
 
     def run(self):
         while self.running:
-            pass
+            data = self.data_handler.fetch_data()
+            signal = self.combiner(data)
+            print(signal)

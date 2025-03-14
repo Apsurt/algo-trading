@@ -1,5 +1,5 @@
 from typing import Tuple, Dict
-from structs import Indicator, Signal
+from structs import Indicator
 from indicators import Indicators
 
 weights = {
@@ -10,12 +10,6 @@ class IndicatorCombiner:
     def __init__(self, weights = weights) -> None:
         self.weights: Dict[Indicator, float] = weights
 
-    def __call__(self, *args: Tuple[Indicator, float]) -> Signal:
-
-        return Signal.BUY
-
-if __name__ == "__main__":
-    combiner = IndicatorCombiner()
-    indicators = Indicators()
-
-    final_signal = combiner(*indicators.list_all_tuples())
+    def __call__(self, data) -> float:
+        self.indicators = Indicators(data)
+        return self.indicators.RSI()
