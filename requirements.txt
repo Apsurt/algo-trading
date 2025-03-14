@@ -2,10 +2,10 @@
 yfinance>=0.2.18  # For market data retrieval
 pandas>=1.3.0      # Data manipulation and analysis
 numpy>=1.21.0      # Numerical operations
+ta>=0.10.2        # Additional technical analysis indicators
 
 # Optional (uncomment if needed)
 # matplotlib>=3.5.0  # For plotting/visualization
-# ta>=0.10.2        # Additional technical analysis indicators
 # scipy>=1.7.3      # Advanced statistical functions
 # scikit-learn>=1.0 # Machine learning components
 
