@@ -9,20 +9,12 @@ class Agent:
         self.start_date: date = self.end_date - timedelta(1.0)
         self.interval: str = "1m"
 
-        self.data_handler: DataHandler = DataHandler(
-            ticker,
-            self.start_date.strftime("%Y-%m-%d"),
-            self.end_date.strftime("%Y-%m-%d"),
-            self.interval
-        )
+        self.data_handler: DataHandler = DataHandler()
+        self.data_handler.add_ticker(self.ticker)
 
         self.combiner: Combiner = Combiner()
 
         self.running: bool = True
-
-    def update_ticker(self, new_ticker: str) -> None:
-        self.data_handler.update_ticker(new_ticker)
-        self.ticker = new_ticker
 
     def start(self):
         while True:

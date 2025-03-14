@@ -1,7 +1,7 @@
 from agent import Agent
 
 def main():
-    agent = Agent("NVDA")
+    agent = Agent("RHM.DE")
     agent.start()
 
 if __name__ == "__main__":

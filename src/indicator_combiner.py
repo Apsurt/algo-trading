@@ -1,4 +1,4 @@
-from typing import Tuple, Dict
+from typing import Dict
 from structs import Indicator
 from indicators import Indicators
 
